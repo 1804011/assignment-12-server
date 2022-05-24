@@ -35,6 +35,18 @@ async function run() {
 
 			res.send(result);
 		});
+		app.post("/orders", async (req, res) => {
+			const order = req?.body;
+			const ordersCollection = client.db("assignment-12").collection("orders");
+			const result = await ordersCollection.insertOne(order);
+			res.send(result);
+		});
+		app.get("/orders/:email", async (req, res) => {
+			const { email } = req?.params;
+			const ordersCollection = client.db("assignment-12").collection("orders");
+			const result = await ordersCollection.find({ email }).toArray();
+			res.send(result);
+		});
 	} finally {
 		//await client.close();
 	}
