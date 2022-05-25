@@ -47,6 +47,17 @@ async function run() {
 			const result = await ordersCollection.find({ email }).toArray();
 			res.send(result);
 		});
+		app.delete("/orders/:email/:id", async (req, res) => {
+			const { email, id } = req?.params;
+			console.log(email, id);
+			const ordersCollection = client.db("assignment-12").collection("orders");
+			const result = await ordersCollection.deleteOne({
+				email,
+				_id: ObjectId(id),
+			});
+			console.log(result);
+			res.send(result);
+		});
 	} finally {
 		//await client.close();
 	}
