@@ -38,6 +38,7 @@ async function run() {
 		app.post("/orders", async (req, res) => {
 			const order = req?.body;
 			const ordersCollection = client.db("assignment-12").collection("orders");
+
 			const result = await ordersCollection.insertOne(order);
 			res.send(result);
 		});
@@ -47,14 +48,22 @@ async function run() {
 			const result = await ordersCollection.find({ email }).toArray();
 			res.send(result);
 		});
-		app.delete("/orders/:email/:id", async (req, res) => {
-			const { email, id } = req?.params;
-			console.log(email, id);
+		app.delete("/orders/:id", async (req, res) => {
+			const { id } = req?.params;
 			const ordersCollection = client.db("assignment-12").collection("orders");
 			const result = await ordersCollection.deleteOne({
-				email,
 				_id: ObjectId(id),
 			});
+			console.log(result);
+			res.send(result);
+		});
+		app.post("/reviews", async (req, res) => {
+			const review = req?.body;
+			console.log(review);
+			const reviewsCollection = client
+				.db("doctors-portal")
+				.collection("reviews");
+			const result = await reviewsCollection.insertOne(review);
 			console.log(result);
 			res.send(result);
 		});
