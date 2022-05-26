@@ -9,7 +9,22 @@ require("dotenv").config();
 //middleware
 app.use(express.json());
 app.use(cors());
-
+const verifyAdmin = async (req, res, next) => {
+	const { email } = req?.headers;
+	console.log(email);
+	if (email) {
+		const usersCollection = client.db("assignment-12").collection("users");
+		const result = await usersCollection.findOne({ email });
+		if (result?.role === "admin") {
+			next();
+		} else {
+			res.status(401).send({ message: "unauthorized access" });
+		}
+	} else {
+		res.status(401).send({ message: "unauthorized access" });
+	}
+};
+app.use("/admin", verifyAdmin);
 //database connection
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.g5amp.mongodb.net/?retryWrites=true&w=majority`;
