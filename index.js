@@ -1,6 +1,7 @@
 console.clear();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const express = require("express");
+const jwt = require("jsonwebtoken");
 const cors = require("cors");
 const app = express();
 const port = process.env.PORT || 5000;
@@ -27,7 +28,8 @@ async function run() {
 			res.send(result);
 		});
 		app.post("/parts", async (req, res) => {
-			console.log(req?.body);
+			// console.log(req?.body);
+
 			const partsCollection = client.db("assignment-12").collection("parts");
 			const result = await partsCollection.insertOne(req?.body);
 			console.log(result);
@@ -108,6 +110,29 @@ async function run() {
 					social,
 					institution,
 					phone,
+				},
+			};
+			const result = await usersCollection.updateOne({ email }, updateDoc);
+			console.log(result);
+			res.send(result);
+		});
+		app.post("/login", async (req, res) => {
+			const data = req?.body;
+			const token = jwt.sign(data, process.env.ACCESS_TOKEN);
+			res.send({ token });
+		});
+		app.get("/users", async (req, res) => {
+			const usersCollection = client.db("assignment-12").collection("users");
+			const result = await usersCollection.find().toArray();
+			console.log(result);
+			res.send(result);
+		});
+		app.put("/admin/:email", async (req, res) => {
+			const { email } = req?.params;
+			const usersCollection = client.db("assignment-12").collection("users");
+			const updateDoc = {
+				$set: {
+					role: "admin",
 				},
 			};
 			const result = await usersCollection.updateOne({ email }, updateDoc);
