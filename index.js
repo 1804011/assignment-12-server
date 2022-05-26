@@ -37,8 +37,12 @@ async function run() {
 	try {
 		await client.connect();
 		app.get("/parts", async (req, res) => {
+			const { limit } = req?.query;
 			const partsCollection = client.db("assignment-12").collection("parts");
-			const result = await partsCollection.find().toArray();
+			const result = await partsCollection
+				.find()
+				.limit(parseInt(limit))
+				.toArray();
 
 			res.send(result);
 		});
@@ -57,6 +61,24 @@ async function run() {
 				_id: ObjectId(id),
 			});
 
+			res.send(result);
+		});
+		app.put("/parts/:id", async (req, res) => {
+			const { id } = req?.params;
+			console.log(req?.body?.orderQuantity);
+			const partsCollection = client.db("assignment-12").collection("parts");
+			const part = await partsCollection.findOne({ _id: ObjectId(id) });
+			const stock = part?.stock;
+			const updateDoc = {
+				$set: {
+					stock: stock - parseInt(req?.body?.orderQuantity) || 0,
+				},
+			};
+			const result = await partsCollection.updateOne(
+				{ _id: ObjectId(id) },
+				updateDoc
+			);
+			console.log(result);
 			res.send(result);
 		});
 		app.post("/orders", async (req, res) => {
@@ -100,10 +122,19 @@ async function run() {
 
 			res.send(result);
 		});
-		app.post("/users", async (req, res) => {
+		app.put("/users", async (req, res) => {
+			console.log(req?.body);
 			const usersCollection = client.db("assignment-12").collection("users");
-			const result = await usersCollection.insertOne(req?.body);
-
+			const filter = { email: req.body?.email };
+			const option = { upsert: true };
+			const updateDoc = {
+				$set: {
+					email: req?.body?.email,
+					name: req?.body?.name,
+				},
+			};
+			const result = await usersCollection.updateOne(filter, updateDoc, option);
+			console.log(result);
 			res.send(result);
 		});
 		app.get("/users/:email", async (req, res) => {
@@ -151,6 +182,14 @@ async function run() {
 				},
 			};
 			const result = await usersCollection.updateOne({ email }, updateDoc);
+			console.log(result);
+			res.send(result);
+		});
+		app.delete("/parts/:id", async (req, res) => {
+			const { id } = req?.params;
+			console.log(id);
+			const partsCollection = client.db("assignment-12").collection("parts");
+			const result = await partsCollection.deleteOne({ _id: ObjectId(id) });
 			console.log(result);
 			res.send(result);
 		});
