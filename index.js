@@ -48,6 +48,7 @@ async function run() {
 			const result = await ordersCollection.find({ email }).toArray();
 			res.send(result);
 		});
+
 		app.delete("/orders/:id", async (req, res) => {
 			const { id } = req?.params;
 			const ordersCollection = client.db("assignment-12").collection("orders");
@@ -61,9 +62,24 @@ async function run() {
 			const review = req?.body;
 			console.log(review);
 			const reviewsCollection = client
-				.db("doctors-portal")
+				.db("assignment-12")
 				.collection("reviews");
 			const result = await reviewsCollection.insertOne(review);
+			console.log(result);
+			res.send(result);
+		});
+		app.get("/reviews", async (req, res) => {
+			const reviewsCollection = client
+				.db("assignment-12")
+				.collection("reviews");
+			const result = await reviewsCollection.find({}).toArray();
+			console.log(result);
+			res.send(result);
+		});
+		app.post("/users", async (req, res) => {
+			console.log(req?.body);
+			const usersCollection = client.db("assignment-12").collection("users");
+			const result = await usersCollection.insertOne(req?.body);
 			console.log(result);
 			res.send(result);
 		});
