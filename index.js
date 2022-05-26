@@ -55,17 +55,17 @@ async function run() {
 			const result = await ordersCollection.deleteOne({
 				_id: ObjectId(id),
 			});
-			console.log(result);
+
 			res.send(result);
 		});
 		app.post("/reviews", async (req, res) => {
 			const review = req?.body;
-			console.log(review);
+
 			const reviewsCollection = client
 				.db("assignment-12")
 				.collection("reviews");
 			const result = await reviewsCollection.insertOne(review);
-			console.log(result);
+
 			res.send(result);
 		});
 		app.get("/reviews", async (req, res) => {
@@ -73,13 +73,37 @@ async function run() {
 				.db("assignment-12")
 				.collection("reviews");
 			const result = await reviewsCollection.find({}).toArray();
-			console.log(result);
+
 			res.send(result);
 		});
 		app.post("/users", async (req, res) => {
-			console.log(req?.body);
 			const usersCollection = client.db("assignment-12").collection("users");
 			const result = await usersCollection.insertOne(req?.body);
+
+			res.send(result);
+		});
+		app.get("/users/:email", async (req, res) => {
+			const { email } = req?.params;
+			const usersCollection = client.db("assignment-12").collection("users");
+			const result = await usersCollection.findOne({ email });
+			console.log(result);
+			res.send(result);
+		});
+		app.put("/users/:email", async (req, res) => {
+			const { email } = req?.params;
+			const profile = req?.body;
+			const { name, location, social, institution, phone } = profile;
+			const usersCollection = client.db("assignment-12").collection("users");
+			const updateDoc = {
+				$set: {
+					name,
+					location,
+					social,
+					institution,
+					phone,
+				},
+			};
+			const result = await usersCollection.updateOne({ email }, updateDoc);
 			console.log(result);
 			res.send(result);
 		});
