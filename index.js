@@ -26,6 +26,13 @@ async function run() {
 
 			res.send(result);
 		});
+		app.post("/parts", async (req, res) => {
+			console.log(req?.body);
+			const partsCollection = client.db("assignment-12").collection("parts");
+			const result = await partsCollection.insertOne(req?.body);
+			console.log(result);
+			res.send(result);
+		});
 		app.get("/parts/:id", async (req, res) => {
 			const { id } = req?.params;
 			const partsCollection = client.db("assignment-12").collection("parts");
