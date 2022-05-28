@@ -9,9 +9,26 @@ require("dotenv").config();
 //middleware
 app.use(express.json());
 app.use(cors());
+const verifyJwt = (req, res, next) => {
+	const email = req?.headers?.authorization;
+	if (!email) {
+		res.status(401).send({ message: "unauthorized access" });
+	}
+
+	const token = email?.split(" ")[1];
+	// console.log(token);
+
+	jwt.verify(token, process.env.ACCESS_TOKEN, (err, decoded) => {
+		if (err) {
+			res.send(403).status({ message: "forbidden access" });
+		}
+		req.decoded = decoded;
+		next();
+	});
+};
 const verifyAdmin = async (req, res, next) => {
 	const { email } = req?.headers;
-	console.log(email);
+	//console.log(email);
 	if (email) {
 		const usersCollection = client.db("assignment-12").collection("users");
 		const result = await usersCollection.findOne({ email });
@@ -25,6 +42,7 @@ const verifyAdmin = async (req, res, next) => {
 	}
 };
 app.use("/admin", verifyAdmin);
+
 //database connection
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.g5amp.mongodb.net/?retryWrites=true&w=majority`;
@@ -47,11 +65,11 @@ async function run() {
 			res.send(result);
 		});
 		app.post("/parts", async (req, res) => {
-			// console.log(req?.body);
+			// //console.log(req?.body);
 
 			const partsCollection = client.db("assignment-12").collection("parts");
 			const result = await partsCollection.insertOne(req?.body);
-			console.log(result);
+			//console.log(result);
 			res.send(result);
 		});
 		app.get("/parts/:id", async (req, res) => {
@@ -65,7 +83,7 @@ async function run() {
 		});
 		app.put("/parts/:id", async (req, res) => {
 			const { id } = req?.params;
-			console.log(req?.body?.orderQuantity);
+			//console.log(req?.body?.orderQuantity);
 			const partsCollection = client.db("assignment-12").collection("parts");
 			const part = await partsCollection.findOne({ _id: ObjectId(id) });
 			const stock = part?.stock;
@@ -78,7 +96,7 @@ async function run() {
 				{ _id: ObjectId(id) },
 				updateDoc
 			);
-			console.log(result);
+			//console.log(result);
 			res.send(result);
 		});
 		app.post("/orders", async (req, res) => {
@@ -88,8 +106,11 @@ async function run() {
 			const result = await ordersCollection.insertOne(order);
 			res.send(result);
 		});
-		app.get("/orders/:email", async (req, res) => {
+		app.get("/orders/:email", verifyJwt, async (req, res) => {
 			const { email } = req?.params;
+			if (req?.decoded?.email != email) {
+				res.status(403).send({ message: "forbidden access" });
+			}
 			const ordersCollection = client.db("assignment-12").collection("orders");
 			const result = await ordersCollection.find({ email }).toArray();
 			res.send(result);
@@ -123,7 +144,7 @@ async function run() {
 			res.send(result);
 		});
 		app.put("/users", async (req, res) => {
-			console.log(req?.body);
+			//console.log(req?.body);
 			const usersCollection = client.db("assignment-12").collection("users");
 			const filter = { email: req.body?.email };
 			const option = { upsert: true };
@@ -134,14 +155,17 @@ async function run() {
 				},
 			};
 			const result = await usersCollection.updateOne(filter, updateDoc, option);
-			console.log(result);
+			//console.log(result);
 			res.send(result);
 		});
-		app.get("/users/:email", async (req, res) => {
+		app.get("/users/:email", verifyJwt, async (req, res) => {
 			const { email } = req?.params;
+			if (req?.decoded?.email != email) {
+				res.status(403).send({ message: "forbidden access" });
+			}
 			const usersCollection = client.db("assignment-12").collection("users");
 			const result = await usersCollection.findOne({ email });
-			console.log(result);
+
 			res.send(result);
 		});
 		app.put("/users/:email", async (req, res) => {
@@ -159,7 +183,6 @@ async function run() {
 				},
 			};
 			const result = await usersCollection.updateOne({ email }, updateDoc);
-			console.log(result);
 			res.send(result);
 		});
 		app.post("/login", async (req, res) => {
@@ -170,9 +193,9 @@ async function run() {
 		app.get("/users", async (req, res) => {
 			const usersCollection = client.db("assignment-12").collection("users");
 			const result = await usersCollection.find().toArray();
-			console.log(result);
 			res.send(result);
 		});
+
 		app.put("/admin/:email", async (req, res) => {
 			const { email } = req?.params;
 			const usersCollection = client.db("assignment-12").collection("users");
@@ -182,15 +205,13 @@ async function run() {
 				},
 			};
 			const result = await usersCollection.updateOne({ email }, updateDoc);
-			console.log(result);
 			res.send(result);
 		});
 		app.delete("/parts/:id", async (req, res) => {
 			const { id } = req?.params;
-			console.log(id);
 			const partsCollection = client.db("assignment-12").collection("parts");
 			const result = await partsCollection.deleteOne({ _id: ObjectId(id) });
-			console.log(result);
+
 			res.send(result);
 		});
 	} finally {
@@ -200,7 +221,7 @@ async function run() {
 run().catch(console.dir);
 
 app.get("/", (req, res) => {
-	res.send("welcome to server");
+	res.send("welcome to assignment-12 server");
 });
 app.listen(port, () => {
 	console.log("listening to", port);
