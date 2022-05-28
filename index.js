@@ -56,12 +56,13 @@ async function run() {
 		await client.connect();
 		app.get("/parts", async (req, res) => {
 			const { limit } = req?.query;
+
 			const partsCollection = client.db("assignment-12").collection("parts");
 			const result = await partsCollection
 				.find()
 				.limit(parseInt(limit))
 				.toArray();
-
+			// console.log(result);
 			res.send(result);
 		});
 		app.post("/parts", async (req, res) => {
@@ -187,6 +188,7 @@ async function run() {
 		});
 		app.post("/login", async (req, res) => {
 			const data = req?.body;
+			console.log(data);
 			const token = jwt.sign(data, process.env.ACCESS_TOKEN);
 			res.send({ token });
 		});
